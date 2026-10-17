@@ -14,15 +14,25 @@ def find_sunday(input_date: date) -> str:
     return sunday_date.strftime("%d%b%Y")
 
 
-def prepend_time_sheet(file_name: str = "Master_Timesheets.xlsx"):
-    """Creates a weekly timesheet and prepends it to an existing or brand-new workbook."""
+def prepend_time_sheet():
+    """Creates a weekly timesheet and prepends it to the master workbook in the Customer folder."""
+    # Define directory and full file path
+    target_dir = r"C:\Users\Username\Documents\Customer"
+    file_name = "Master_Timesheets.xlsx"
+    full_path = os.path.join(target_dir, file_name)
+
     d_week_end = find_sunday(date.today())
     sheet_title = f"WE{d_week_end}"
 
+    # Ensure the directory structure exists before creating files
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+        print(f"Created missing directory pathway: {target_dir}")
+
     # 1. Load or Create the Workbook
-    if os.path.exists(file_name):
-        wb = openpyxl.load_workbook(file_name)
-        print(f"Found existing workbook '{file_name}'.")
+    if os.path.exists(full_path):
+        wb = openpyxl.load_workbook(full_path)
+        print(f"Found existing workbook at '{full_path}'.")
 
         # Skip if this week's sheet already exists to avoid duplicates
         if sheet_title in wb.sheetnames:
@@ -34,7 +44,7 @@ def prepend_time_sheet(file_name: str = "Master_Timesheets.xlsx"):
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = sheet_title
-        print(f"Workbook not found. Creating new file: '{file_name}'.")
+        print(f"Workbook not found. Creating new file at: '{full_path}'.")
 
     # 2. Set Column Widths (Columns A to I)
     column_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
@@ -65,8 +75,6 @@ def prepend_time_sheet(file_name: str = "Master_Timesheets.xlsx"):
     center_alignment = Alignment(horizontal="center")
     for row in range(2, 101):
         ws.cell(row=row, column=3).number_format = "hh:mm"
-
-        # Columns D & E: Number format and Center Alignment
         for col_idx in range(4, 5):
             cell = ws.cell(row=row, column=col_idx)
             cell.number_format = "0.00"
@@ -84,20 +92,18 @@ def prepend_time_sheet(file_name: str = "Master_Timesheets.xlsx"):
     # 7. Set Window Zoom to 80%
     ws.sheet_view.zoomScale = 80
 
-    # 8. PREPEND: Move the newly created sheet to the very first position (index 0)
-    # openpyxl keeps an internal list of sheets layout called _sheets
+    # 8. PREPEND: Move the newly created sheet to index 0
     sheet_index = wb._sheets.index(ws)
     wb._sheets.insert(0, wb._sheets.pop(sheet_index))
 
-    # 9. Clean up default sheet if this was a first run creation
+    # 9. Clean up default sheet if this was a first-run creation
     if "Sheet" in wb.sheetnames and len(wb.sheetnames) > 1:
         wb.remove(wb["Sheet"])
 
-    # Save the updated workbook
-    wb.save(file_name)
-    print(f"Successfully prepended sheet '{sheet_title}' to '{file_name}'.")
+    # Save the updated workbook back to the absolute path
+    wb.save(full_path)
+    print(f"Successfully prepended sheet '{sheet_title}' to '{full_path}'.")
 
 
-# Execute the script
 if __name__ == "__main__":
     prepend_time_sheet()
