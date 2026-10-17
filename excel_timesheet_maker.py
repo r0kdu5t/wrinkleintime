@@ -66,7 +66,7 @@ def do_time_sheet():
         ws.cell(row=row, column=3).number_format = "hh:mm"
 
         # Columns D & E: Number format and Center Alignment
-        for col_idx in:
+        for col_idx in range(4, 5):
             cell = ws.cell(row=row, column=col_idx)
             cell.number_format = "0.00"
             cell.alignment = center_alignment
